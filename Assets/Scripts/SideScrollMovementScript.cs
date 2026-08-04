@@ -76,7 +76,6 @@ public class SideScrollMovementScript : MonoBehaviour
             myRigidbody.AddForce(Vector2.up * jumpHeight, ForceMode2D.Impulse);
             jumpCount += 1;
         }
-        
     }
 
     void OnCollisionEnter2D(Collision2D collision)

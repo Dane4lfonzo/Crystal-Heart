@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MovePlate : MonoBehaviour
 {
@@ -26,34 +27,55 @@ public class MovePlate : MonoBehaviour
         }
     }
 
-    public void OnMouseUp()
+    private void Update()
+    {
+        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+
+            RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
+
+            if (hit.collider != null && hit.collider.gameObject == gameObject)
+            {
+                MovePiece();
+            }
+        }
+    }
+
+    private void MovePiece()
     {
         controller = GameObject.FindGameObjectWithTag("GameController");
 
-        //Destroy the victim Chesspiece
+        if (controller.GetComponent<Controller>().HasPlayerMoved())
+        {
+            return;
+        }
+
         if (attack)
         {
             GameObject cp = controller.GetComponent<Controller>().GetPosition(matrixX, matrixY);
 
+            // if (cp.name == "white_king") controller.GetComponent<Controller>().SetGameOver(true);
+            // if (cp.name == "black_king") controller.GetComponent<Controller>().SetGameOver(true);
+
             Destroy(cp);
         }
 
-        //Set the Chesspiece's original location to be empty
-        controller.GetComponent<Controller>().SetPositionEmpty(reference.GetComponent<ChessmanScript>().GetXBoard(), 
+        controller.GetComponent<Controller>().SetPositionEmpty(
+            reference.GetComponent<ChessmanScript>().GetXBoard(),
             reference.GetComponent<ChessmanScript>().GetYBoard());
 
-        //Move reference chess piece to this position
         reference.GetComponent<ChessmanScript>().SetXBoard(matrixX);
         reference.GetComponent<ChessmanScript>().SetYBoard(matrixY);
-        reference.GetComponent<ChessmanScript>().SetCoords();
+        //reference.GetComponent<ChessmanScript>().SetCoords();
+        reference.GetComponent<ChessmanScript>().MoveToCoords(matrixX, matrixY, 0.2f);
 
-        //Update the matrix
+        controller.GetComponent<Controller>().SetPlayerHasMoved(true);
+
         controller.GetComponent<Controller>().SetPosition(reference);
 
-        //Switch Current Player
-        controller.GetComponent<Controller>().NextTurn();
+        //controller.GetComponent<Controller>().NextTurn();
 
-        //Destroy the move plates including self
         reference.GetComponent<ChessmanScript>().DestroyMovePlates();
     }
 
